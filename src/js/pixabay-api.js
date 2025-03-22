@@ -1,12 +1,4 @@
 import axios from 'axios';
-import iziToast from 'izitoast';
-import 'izitoast/dist/css/iziToast.min.css';
-
-iziToast.settings({
-  position: 'topRight',
-  iconColor: '#fff',
-  messageColor: '#fff',
-});
 
 export async function searchImage(request, page = 1, per_page = 20) {
   const API_KEY = '49253518-6fbcd3e4502fdc6eae88c44f3';
@@ -22,23 +14,21 @@ export async function searchImage(request, page = 1, per_page = 20) {
     page +
     '&per_page=' +
     per_page;
+
+  if (!request.trim()) {
+    return Promise.reject(new Error('Please enter something!'));
+  }
+
   try {
-    if (request == '') {
-      throw new Error('Please enter something!');
-    }
     const result = await axios.get(URL);
-    if (result.data.hits == 0) {
-      throw new Error(
-        'Sorry, there are no images matching your search query. Please, try again!'
+    if (result.data.hits.length === 0) {
+      return Promise.reject(
+        new Error('Sorry, no images match your search query. Try again!')
       );
     }
 
-    return { urls: [...result.data.hits], total: result.data.totalHits };
-  } catch (err) {
-    iziToast.error({
-      iconUrl: 'img/error.svg',
-      message: err.message,
-    });
-    // return [];
+    return { urls: result.data.hits, total: result.data.totalHits };
+  } catch {
+    return Promise.reject(new Error('An error occurred while fetching images. Try again later!'));
   }
 }
